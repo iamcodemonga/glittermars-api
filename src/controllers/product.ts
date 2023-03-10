@@ -61,11 +61,34 @@ export const addProduct = async (req: Request, res: Response) => {
 
 }
 // Get all products
-export const allProducts = async(req: Request, res: Response) => {
+export const latestProducts = async(req: Request, res: Response) => {
 
    const client = await pool.connect();
    try {
-      const { rows } : QueryResult = await pool.query('SELECT _id, images, title, price, quantity FROM products');
+      const { rows } : QueryResult = await pool.query('SELECT _id, images, title, price, quantity FROM products ORDER BY id DESC');
+      return res.json(rows);
+
+   } catch (error) {
+      console.log(error)
+   } finally {
+      client.release();
+   }
+
+}
+// Get all products
+export const allProducts = async(req: Request, res: Response) => {
+
+   const { min, max } = req.query;
+
+   const client = await pool.connect();
+   try {
+
+      if ((min=="" || min == undefined) && (max=="" || max == undefined)) {
+         const { rows } : QueryResult = await pool.query(`SELECT _id, images, title, category, price, quantity FROM products ORDER BY id ASC`);
+         return res.json(rows);
+      }
+      
+      const { rows } : QueryResult = await pool.query(`SELECT _id, images, title, category, price, quantity FROM products WHERE price < $1 AND price > $2 ORDER BY id ASC`, [ max, min ]);
       return res.json(rows);
 
    } catch (error) {
@@ -88,6 +111,7 @@ export const groupedProduct = async(req: Request, res: Response) => {
    let status: statusInterface;
 
    const { category }  = req.params;
+   const { min, max } = req.query;
    const availableCategories = [ 'accessories', 'clothing', 'jewelries', 'shoes' ];
 
    if (!availableCategories.includes(category)) {
@@ -98,7 +122,13 @@ export const groupedProduct = async(req: Request, res: Response) => {
    const client = await pool.connect();
    try {
 
-      const { rows } : QueryResult = await pool.query('SELECT _id, images, title, price, quantity FROM products WHERE category=$1', [ category ]);
+      if ((min=="" || min == undefined) && (max=="" || max == undefined)) {
+         const { rows } : QueryResult = await pool.query('SELECT _id, images, title, price, quantity FROM products WHERE category=$1', [ category ]);
+         status = { error: false, message: "All products available", product: rows };
+         return res.json(status);
+      }
+
+      const { rows } : QueryResult = await pool.query('SELECT _id, images, title, price, quantity FROM products WHERE category=$1 AND price < $2 AND price > $3 ORDER BY id ASC', [ category, max, min ]);
       status = { error: false, message: "All products available", product: rows };
       return res.json(status);
 
@@ -112,12 +142,12 @@ export const groupedProduct = async(req: Request, res: Response) => {
 // Get recommended products
 export const similarProducts = async(req: Request, res: Response) => {
 
-   const { category, id }  = req.query;
+   const { productid }  = req.params;
 
    const client = await pool.connect();
    try {
-
-      const { rows } : QueryResult = await pool.query('SELECT _id, images, title, price, quantity FROM products WHERE category=$1 AND _id!=$2', [ category, id ]);
+      const category: QueryResult = await pool.query('SELECT category FROM products WHERE _id=$1', [ productid ]);
+      const { rows } : QueryResult = await pool.query('SELECT _id, images, title, category, price, quantity FROM products WHERE category=$1 AND _id!=$2 LIMIT 6', [ category.rows[0].category, productid ]);
       return res.json(rows);
 
    } catch (error) {

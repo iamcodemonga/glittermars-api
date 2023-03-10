@@ -13,11 +13,21 @@ CREATE TABLE public.products
     id serial NOT NULL,
     _id character varying(100) NOT NULL,
     images text NOT NULL,
-    title character varying(250) NOT NULL,
+    title text NOT NULL,
     category character varying(30) NOT NULL,
     price bigint NOT NULL,
-    quantity bigint,
+    quantity bigint DEFAULT 0,
     description text NOT NULL,
     created_at date,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE public.users
+(
+    id serial NOT NULL,
+    _id character varying(100) NOT NULL,
+    fullname character varying(100) NOT NULL,
+    email character varying(100) NOT NULL,
+    password character varying(100) NOT NULL,
     PRIMARY KEY (id)
 );
