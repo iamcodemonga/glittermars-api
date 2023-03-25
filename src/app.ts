@@ -6,16 +6,16 @@ import authRoutes from './routes/auth'
 import userRoutes from './routes/user'
 import paymentRoutes from './routes/payment'
 import cookieParser from 'cookie-parser'
-// const cookieParser = require('cookie-parser')
 
 // app declarations
 config();
 const app: Express = express();
 const port: number = Number(process.env.PORT) || 8000;
+const clientRoot = process.env.CLIENT_URL;
 
 // application setup equipments
 app.use(cors({
-    origin: [ 'http://localhost:3000' ],
+    origin: [ `${clientRoot}` ],
     methods: 'GET, POST, PUT, DELETE',
     credentials: true,
 }))

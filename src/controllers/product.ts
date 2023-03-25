@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 import { QueryResult } from 'pg';
 import crypto from 'crypto';
 import { pool } from '../connect';
+import { GetProduct, ProductAuth, Review, ReviewStatus } from "../interfaces/product";
+import redis from "../cache";
 
 // create product
 export const addProduct = async (req: Request, res: Response) => {
@@ -65,7 +67,12 @@ export const latestProducts = async(req: Request, res: Response) => {
 
    const client = await pool.connect();
    try {
+      const cachedProducts = await redis.get("latestProducts");
+      if (cachedProducts) {
+         return res.json(JSON.parse(cachedProducts));
+      }
       const { rows } : QueryResult = await pool.query('SELECT _id, images, title, price, quantity FROM products ORDER BY id DESC');
+      await redis.set("latestProducts", JSON.stringify(rows), "EX", 60*60);
       return res.json(rows);
 
    } catch (error) {
@@ -101,14 +108,8 @@ export const allProducts = async(req: Request, res: Response) => {
 // Get products by category
 export const groupedProduct = async(req: Request, res: Response) => {
 
-   interface statusInterface {
-      error: boolean,
-      message: string,
-      product?: any[]
-   }
-
    // variable declaration
-   let status: statusInterface;
+   let status: ProductAuth;
 
    const { category }  = req.params;
    const { min, max } = req.query;
@@ -160,20 +161,10 @@ export const similarProducts = async(req: Request, res: Response) => {
 // Get product by id
 export const Product = async(req: Request, res: Response) => {
 
-   interface statusInterface {
-      error: boolean,
-      message: string,
-      product?: any[]
-      customer?: boolean
-   }
-
-   const user = req.res?.locals.user;
-   console.log(user)
-   let customer: boolean = false;
-
-
    // variable declaration
-   let status: statusInterface;
+   let status: ProductAuth;
+   const user = req.res?.locals.user;
+   let customer: boolean = false;
 
    const { id }  = req.params;
 
@@ -206,8 +197,12 @@ export const bestProducts = async(req: Request, res: Response) => {
 
    const client = await pool.connect();
    try {
-
-      const { rows } : QueryResult = await pool.query('SELECT products._id, product.title, products.images, products.price, products.quantity, products SUM(order_items.quantity) as total_quantity FROM order_items JOIN products ON order_items.product_id = products.id GROUP BY products.id ORDER BY total_quantity DESC LIMIT 6');
+      const cachedProducts = await redis.get("bestSellingProducts");
+      if (cachedProducts) {
+         return res.json(JSON.parse(cachedProducts));
+      }
+      const { rows } : QueryResult = await pool.query('SELECT products._id, products.images, products.title, products.price, products.quantity, SUM(orders.quantity) AS order_quantity FROM orders JOIN products ON orders.product_id = products._id GROUP BY products._id, products.images, products.title, products.price, products.quantity ORDER BY order_quantity DESC LIMIT 6');
+      await redis.set("bestSellingProducts", JSON.stringify(rows), "EX", 60*60);
       return res.json(rows);
 
    } catch (error) {
@@ -235,24 +230,7 @@ export const getReviews = async(req: Request, res: Response) => {
 // Add product review
 export const addReview = async(req: Request, res: Response) => {
 
-   interface Review {
-      product_id: string,
-      title: string,
-      description: string,
-      rating: number,
-      date: string,
-      _id: string,
-      fullname: string
-   }
-
-   interface statusInterface {
-      error: boolean,
-      message: string,
-      review?: Review,
-      customer?: boolean
-   }
-
-   let status: statusInterface;
+   let status: ReviewStatus;
 
    const { review } = req.body;
    const { title, rating, description } = review;
@@ -270,7 +248,6 @@ export const addReview = async(req: Request, res: Response) => {
    try {
       const { rows }: QueryResult = await pool.query('INSERT INTO reviews (user_id, product_id, title, description, rating, created_at) VALUES ( $1, $2, $3, $4, $5, $6 ) RETURNING id', [ user, id, title, description, rating, date]);
       const getReview: QueryResult = await pool.query("SELECT reviews.product_id, reviews.title, reviews.description, reviews.rating, reviews.created_at as date, users._id, users.fullname FROM reviews LEFT JOIN users on reviews.user_id = users._id WHERE reviews.id = $1", [ rows[0].id ]);
-      console.log(getReview.rows[0])
       status = { error: false, message: "successful!!!", review: getReview.rows[0] }
       return res.json({ status })
    } catch (error) {

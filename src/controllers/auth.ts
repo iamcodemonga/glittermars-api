@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt';
 import { config } from 'dotenv'
 import jwt from 'jsonwebtoken'
 import { User, authStatus } from "../interfaces/user";
+import redis from "../cache";
 config();
 
 export const register = async(req:Request, res:Response) => {

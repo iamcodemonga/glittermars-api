@@ -1,4 +1,4 @@
-export interface getProduct {
+export interface GetProduct {
     _id: string,
     images: string,
     title: string,
@@ -9,55 +9,38 @@ export interface getProduct {
     created_at?: string
 }
 
-export interface getPackages extends getProduct {
+export interface ProductAuth {
+    error: boolean,
+    message: string,
+    product?: Array<GetProduct>
+    customer?: boolean
+}
+
+export interface GetPackages extends GetProduct {
     order_id: string,
     pending: number,
     order_quantity: string
 }
 
-// export interface addressInfo {
-//     country: string,
-//     city: string,
-//     address: string,
-//     postal_code: number
-// }
+export interface OrderAuth {
+    error: boolean,
+    message: string,
+    orders?: Array<GetPackages>
+}
 
-// export interface makeOrders extends addressInfo {
-//     _id: string,
-//     product_id: string,
-//     buyer_id: string,
-//     name: string,
-//     email: string,
-//     cartQuantity: number,
-//     price: string,
-//     created_at: string
-
-// }
-
-export interface getComments {
-    _id: string,
-    fullname: string,
+export interface Review {
     product_id: string,
     title: string,
     description: string,
-    rating: string,
-    date: string,
-}
-
-export interface addComments {
-    title: string,
     rating: number,
-    description: string,
-}
+    date: string,
+    _id: string,
+    fullname: string
+ }
 
-export interface orderAuth {
+ export interface ReviewStatus {
     error: boolean,
     message: string,
-    orders?: Array<getPackages>
-}
-
-export interface productAuth {
-    error: boolean,
-    message: string,
-    products?: Array<getPackages>
+    review?: Review,
+    customer?: boolean
 }

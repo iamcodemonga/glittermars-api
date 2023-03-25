@@ -1,9 +1,8 @@
 import express, { Request, Response } from "express";
 import { QueryResult } from 'pg';
-import crypto from 'crypto';
 import { pool } from '../connect';
 import { config } from 'dotenv'
-import { getProduct, getPackages, orderAuth } from '../interfaces/product'
+import { GetProduct, GetPackages, OrderAuth } from '../interfaces/product'
 config();
 
 export const profile = async(req: Request, res: Response) => {
@@ -12,7 +11,6 @@ export const profile = async(req: Request, res: Response) => {
 
 export const placeOrder = async(req: Request, res: Response) => {
     const { buyer, products } = req.body;
-    console.log(products)
     const client = await pool.connect()
     const orderid = Date.now();
     try {
@@ -32,7 +30,7 @@ export const placeOrder = async(req: Request, res: Response) => {
 
 export const getOrders = async(req: Request, res: Response) => {
 
-    let status: orderAuth;
+    let status: OrderAuth;
     // get the user id
     const user = req.res?.locals.user;
     if (!user) {
