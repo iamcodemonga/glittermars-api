@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
-import { addProduct, allProducts, latestProducts, similarProducts, groupedProduct, bestProducts, Product  } from "../controllers/product";
+import { addProduct, allProducts, latestProducts, similarProducts, groupedProduct, bestProducts, Product, getReviews, addReview  } from "../controllers/product";
+import { isActive } from '../middleware/user';
 
 const router: Router = express.Router();
 
@@ -15,7 +16,11 @@ router.get( '/recommended/:productid', similarProducts );
 
 router.get( '/category/:category', groupedProduct );
 
-router.get( '/:id', Product );
+router.get( '/:id', isActive, Product );
+
+router.get( '/reviews/:id', getReviews )
+
+router.post( '/review/:id', addReview )
 
 // router.get( 'search/:match', searchedProduct );
 

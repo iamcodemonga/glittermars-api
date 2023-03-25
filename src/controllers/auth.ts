@@ -4,19 +4,15 @@ import crypto from 'crypto';
 import { pool } from '../connect';
 import bcrypt from 'bcrypt';
 import { config } from 'dotenv'
+import jwt from 'jsonwebtoken'
+import { User, authStatus } from "../interfaces/user";
 config();
 
 export const register = async(req:Request, res:Response) => {
 
-    interface statusInterface {
-        error: boolean,
-        message: string,
-        user?: QueryResult
-    }
+    let status: authStatus;
 
-    let status: statusInterface;
-
-    let { fullname, email, password } = req.body;
+    let { fullname, email, password }: { fullname: string, email: string, password: string } = req.body;
     let nameRegex: RegExp = /^([a-zA-Z ]+)$/;
     let emailRegex: RegExp = /^([a-zA-Z0-9\.\-_]+)@([a-zA-Z0-9\-]+)\.([a-z]{2,10})(\.[a-z]{2,10})?$/;
     fullname = fullname.toLowerCase();
@@ -37,6 +33,7 @@ export const register = async(req:Request, res:Response) => {
         return res.json(status)
     }
 
+    // check for email existence in the database
     const client = await pool.connect()
     try {
         let existingEmail: QueryResult = await pool.query(`SELECT email FROM users WHERE email=$1`, [email]);
@@ -44,14 +41,38 @@ export const register = async(req:Request, res:Response) => {
             status = { error: true, message: "Email already exists!!"}
             return res.json(status)
         }
+
         // hash the password
         const salt: string = await bcrypt.genSalt(10);
         const hashedPassword: string = await bcrypt.hash(password, salt);
         const hashedId: string = crypto.randomUUID();
-        const user: QueryResult = await pool.query('INSERT INTO users (_id, fullname, email, password) VALUES ($1, $2, $3, $4) RETURNING *', [ hashedId, fullname, email, hashedPassword])
-        // send response
-        status = { error: false, message: `Hi ${user.rows[0].fullname},You're welcome!!`, user: user.rows[0]}
-        return res.json(status)
+
+        // query the database
+        const client = await pool.connect();
+        try {
+            //add user to database
+            const user: QueryResult = await pool.query('INSERT INTO users (_id, fullname, email, password) VALUES ($1, $2, $3, $4) RETURNING *', [ hashedId, fullname, email, hashedPassword])
+
+            //create token
+            const token = jwt.sign({ id: user.rows[0]._id }, String(process.env.JWTSECRET), { expiresIn: process.env.JWTEXP});
+
+            // set cookie
+            res.cookie('glittermars', token, {
+                maxAge: 1000*60*60*24*7,
+                httpOnly: true,
+                sameSite: 'strict',
+                secure: false
+            })
+            // send response
+            status = { error: false, message: `Hi ${user.rows[0].fullname},You're welcome!!`, user: user.rows[0]}
+            return res.json(status)
+
+        } catch (error) {
+            console.log(error)
+        } finally {
+            client.release()
+        }
+        
     } catch (error) {
         console.log(error)
     } finally {
@@ -62,15 +83,9 @@ export const register = async(req:Request, res:Response) => {
 
 export const login = async(req:Request, res:Response) => {
 
-    interface statusInterface {
-        error: boolean,
-        message: string,
-        user?: QueryResult
-    }
+    let status: authStatus;
 
-    let status: statusInterface;
-
-    let { email, password } = req.body;
+    let { email, password }: User = req.body;
     let emailRegex: RegExp = /^([a-zA-Z0-9\.\-_]+)@([a-zA-Z0-9\-]+)\.([a-z]{2,10})(\.[a-z]{2,10})?$/;
     email = email.toLowerCase().replace(/ /g, "_");
 
@@ -84,6 +99,7 @@ export const login = async(req:Request, res:Response) => {
         return res.json(status)
     }
 
+    // check if email exists
     const client = await pool.connect()
     try {
         let existingEmail: QueryResult = await pool.query(`SELECT * FROM users WHERE email=$1`, [email]);
@@ -98,13 +114,35 @@ export const login = async(req:Request, res:Response) => {
             status = { error: true, message: "Email or Password is incorrect!!!" }
             return res.json(status)
         }
+
+        //create token
+        const token = jwt.sign({ id: existingEmail.rows[0]._id }, String(process.env.JWTSECRET), { expiresIn: process.env.JWTEXP});
+
+        // set cookie
+        res.cookie('glittermars', token, {
+            maxAge: 1000*60*60*24*7,
+            httpOnly: true,
+            sameSite: 'strict',
+            secure: false
+        })
+
         // send response
-        status = { error: false, message: `Hi ${existingEmail.rows[0].fullname},You're welcome!!`, user: existingEmail.rows[0]}
-        res.json(status)
+        status = { 
+            error: false,
+            message: `Hi ${existingEmail.rows[0].fullname},You're welcome!!`,
+            user: [{ _id: existingEmail.rows[0]._id, fullname: existingEmail.rows[0].fullname, email: existingEmail.rows[0].email }]
+        }
+        return res.json(status)
+
     } catch (error) {
         console.log(error)
     } finally {
         client.release()
     }
     
+}
+
+export const logout = async(req:Request, res:Response) => {
+    res.clearCookie('glittermars')
+    return res.json({ status: 200, message: 'bye bye'})
 }

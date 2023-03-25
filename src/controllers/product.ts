@@ -164,7 +164,13 @@ export const Product = async(req: Request, res: Response) => {
       error: boolean,
       message: string,
       product?: any[]
+      customer?: boolean
    }
+
+   const user = req.res?.locals.user;
+   console.log(user)
+   let customer: boolean = false;
+
 
    // variable declaration
    let status: statusInterface;
@@ -179,7 +185,13 @@ export const Product = async(req: Request, res: Response) => {
          status = { error: true, message: "this product does not exist!" };
          return res.json(status);
       }
-      status = { error: false, message: "product available!", product: rows };
+      if (user){
+         const patron : QueryResult = await pool.query('SELECT id FROM orders WHERE product_id=$1 AND buyer_id=$2', [ id, user._id ]);
+         if (patron.rowCount > 0) {
+            customer = true;
+         }
+      }
+      status = { error: false, message: "product available!", product: rows, customer };
       return res.json(status);
 
    } catch (error) {
@@ -205,4 +217,68 @@ export const bestProducts = async(req: Request, res: Response) => {
    }
 
 }
+// Get product reviews
+export const getReviews = async(req: Request, res: Response) => {
+
+   const { id } = req.params;
+   const client = await pool.connect();
+   try {
+      const { rows } = await pool.query("SELECT reviews.product_id, reviews.title, reviews.description, reviews.rating, reviews.created_at as date, users._id, users.fullname FROM reviews LEFT JOIN users on reviews.user_id = users._id WHERE reviews.product_id = $1", [ id ]);
+      // console.log(rows)
+      return res.json(rows)
+   } catch (error) {
+      console.log(error)
+   } finally {
+      client.release()
+   }
+}
+// Add product review
+export const addReview = async(req: Request, res: Response) => {
+
+   interface Review {
+      product_id: string,
+      title: string,
+      description: string,
+      rating: number,
+      date: string,
+      _id: string,
+      fullname: string
+   }
+
+   interface statusInterface {
+      error: boolean,
+      message: string,
+      review?: Review,
+      customer?: boolean
+   }
+
+   let status: statusInterface;
+
+   const { review } = req.body;
+   const { title, rating, description } = review;
+   const { id } = req.params;
+   const { user } = req.query;
+   const today: Date = new Date();
+   const date = `${today.getDate()}-${today.getMonth()}-${today.getFullYear()}`
+
+   if (!title || !description) {
+      status = { error: true, message: "please fill in all fields!!!" }
+      return res.json({ status })
+   }
+
+   const client = await pool.connect()
+   try {
+      const { rows }: QueryResult = await pool.query('INSERT INTO reviews (user_id, product_id, title, description, rating, created_at) VALUES ( $1, $2, $3, $4, $5, $6 ) RETURNING id', [ user, id, title, description, rating, date]);
+      const getReview: QueryResult = await pool.query("SELECT reviews.product_id, reviews.title, reviews.description, reviews.rating, reviews.created_at as date, users._id, users.fullname FROM reviews LEFT JOIN users on reviews.user_id = users._id WHERE reviews.id = $1", [ rows[0].id ]);
+      console.log(getReview.rows[0])
+      status = { error: false, message: "successful!!!", review: getReview.rows[0] }
+      return res.json({ status })
+   } catch (error) {
+      console.log(error)
+   } finally {
+      client.release()
+   }
+
+}
 // get searched product
+

@@ -4,7 +4,9 @@ import { config } from "dotenv"
 import productRoutes from './routes/product'
 import authRoutes from './routes/auth'
 import userRoutes from './routes/user'
+import paymentRoutes from './routes/payment'
 import cookieParser from 'cookie-parser'
+// const cookieParser = require('cookie-parser')
 
 // app declarations
 config();
@@ -22,9 +24,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.json())
 
 // application routes
-app.use('/auth', authRoutes)
+app.use( '/auth', authRoutes )
 app.use( '/products', productRoutes );
-app.use('/user', userRoutes)
+app.use( '/user', userRoutes )
+app.use( '/payments', paymentRoutes )
 
 // running application
 app.listen(port, () => console.log(`App listening at port ${port}`));
