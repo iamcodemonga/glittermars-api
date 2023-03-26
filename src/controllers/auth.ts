@@ -62,7 +62,7 @@ export const register = async(req:Request, res:Response) => {
                 maxAge: 1000*60*60*24*7,
                 httpOnly: true,
                 sameSite: 'strict',
-                secure: false
+                secure: true
             })
             // send response
             status = { error: false, message: `Hi ${user.rows[0].fullname},You're welcome!!`, user: user.rows[0]}
@@ -124,7 +124,7 @@ export const login = async(req:Request, res:Response) => {
             maxAge: 1000*60*60*24*7,
             httpOnly: true,
             sameSite: 'strict',
-            secure: false
+            secure: true
         })
 
         // send response
