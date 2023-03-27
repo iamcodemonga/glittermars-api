@@ -113,21 +113,20 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         //create token
         const token = jsonwebtoken_1.default.sign({ id: existingEmail.rows[0]._id }, String(process.env.JWTSECRET), { expiresIn: process.env.JWTEXP });
-        // set cookie
-        res.cookie('glittermars', token, {
-            maxAge: 1000 * 60 * 60 * 24 * 7,
-            httpOnly: false,
-            sameSite: "strict",
-            domain: process.env.CLIENT_URL,
-            secure: true
-        });
         // send response
         status = {
             error: false,
             message: `Hi ${existingEmail.rows[0].fullname},You're welcome!!`,
             user: [{ _id: existingEmail.rows[0]._id, fullname: existingEmail.rows[0].fullname, email: existingEmail.rows[0].email }]
         };
-        return res.json(status);
+        // set cookie
+        return res.cookie('glittermars', token, {
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+            httpOnly: true,
+            sameSite: "strict",
+            secure: true
+        }).json(status);
+        // return res.json(status)
     }
     catch (error) {
         console.log(error);
