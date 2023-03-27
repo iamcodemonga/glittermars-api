@@ -61,7 +61,6 @@ export const register = async(req:Request, res:Response) => {
             res.cookie('glittermars', token, {
                 maxAge: 1000*60*60*24*7,
                 httpOnly: true,
-                sameSite: 'none',
                 secure: true
             })
             // send response
@@ -123,7 +122,6 @@ export const login = async(req:Request, res:Response) => {
         res.cookie('glittermars', token, {
             maxAge: 1000*60*60*24*7,
             httpOnly: true,
-            sameSite: 'none',
             secure: true
         })
 

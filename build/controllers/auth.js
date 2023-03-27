@@ -61,7 +61,6 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             res.cookie('glittermars', token, {
                 maxAge: 1000 * 60 * 60 * 24 * 7,
                 httpOnly: true,
-                sameSite: 'none',
                 secure: true
             });
             // send response
@@ -116,7 +115,6 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.cookie('glittermars', token, {
             maxAge: 1000 * 60 * 60 * 24 * 7,
             httpOnly: true,
-            sameSite: 'none',
             secure: true
         });
         // send response
