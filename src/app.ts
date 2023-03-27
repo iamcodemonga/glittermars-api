@@ -5,7 +5,8 @@ import productRoutes from './routes/product'
 import authRoutes from './routes/auth'
 import userRoutes from './routes/user'
 import paymentRoutes from './routes/payment'
-import cookieParser from 'cookie-parser'
+// import cookieParser from 'cookie-parser'
+const cookieParser = require('cookie-parser')
 
 // app declarations
 config();

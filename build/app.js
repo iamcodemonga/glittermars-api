@@ -10,7 +10,8 @@ const product_1 = __importDefault(require("./routes/product"));
 const auth_1 = __importDefault(require("./routes/auth"));
 const user_1 = __importDefault(require("./routes/user"));
 const payment_1 = __importDefault(require("./routes/payment"));
-const cookie_parser_1 = __importDefault(require("cookie-parser"));
+// import cookieParser from 'cookie-parser'
+const cookieParser = require('cookie-parser');
 // app declarations
 (0, dotenv_1.config)();
 const app = (0, express_1.default)();
@@ -22,7 +23,7 @@ app.use((0, cors_1.default)({
     methods: 'GET, POST, PUT, DELETE',
     credentials: true,
 }));
-app.use((0, cookie_parser_1.default)());
+app.use(cookieParser());
 app.use(express_1.default.urlencoded({ extended: false }));
 app.use(express_1.default.json());
 // application routes
