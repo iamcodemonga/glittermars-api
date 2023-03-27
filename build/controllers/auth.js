@@ -62,6 +62,7 @@ const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 maxAge: 1000 * 60 * 60 * 24 * 7,
                 httpOnly: true,
                 sameSite: "strict",
+                domain: process.env.CLIENT_URL,
                 secure: true
             });
             // send response
@@ -117,6 +118,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             maxAge: 1000 * 60 * 60 * 24 * 7,
             httpOnly: true,
             sameSite: "strict",
+            domain: process.env.CLIENT_URL,
             secure: true
         });
         // send response
