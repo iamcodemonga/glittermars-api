@@ -62,6 +62,7 @@ export const register = async(req:Request, res:Response) => {
                 maxAge: 1000*60*60*24*7,
                 httpOnly: true,
                 sameSite: "strict",
+                domain: process.env.CLIENT_URL,
                 secure: true
             })
             // send response
@@ -124,6 +125,7 @@ export const login = async(req:Request, res:Response) => {
             maxAge: 1000*60*60*24*7,
             httpOnly: true,
             sameSite: "strict",
+            domain: process.env.CLIENT_URL,
             secure: true
         })
 
