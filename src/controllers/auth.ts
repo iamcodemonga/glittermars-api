@@ -60,7 +60,7 @@ export const register = async(req:Request, res:Response) => {
             // set cookie
             res.cookie('glittermars', token, {
                 maxAge: 1000*60*60*24*7,
-                httpOnly: true,
+                httpOnly: false,
                 sameSite: "strict",
                 domain: process.env.CLIENT_URL,
                 secure: true
@@ -123,7 +123,7 @@ export const login = async(req:Request, res:Response) => {
         // set cookie
         res.cookie('glittermars', token, {
             maxAge: 1000*60*60*24*7,
-            httpOnly: true,
+            httpOnly: false,
             sameSite: "strict",
             domain: process.env.CLIENT_URL,
             secure: true
