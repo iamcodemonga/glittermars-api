@@ -5,8 +5,8 @@ import productRoutes from './routes/product'
 import authRoutes from './routes/auth'
 import userRoutes from './routes/user'
 import paymentRoutes from './routes/payment'
-// import cookieParser from 'cookie-parser'
-const cookieParser = require('cookie-parser')
+import  cookieParser from 'cookie-parser'
+// const cookieParser = require('cookie-parser')
 
 // app declarations
 config();
@@ -20,7 +20,7 @@ app.use(cors({
     methods: 'GET, POST, PUT, DELETE',
     credentials: true,
 }))
-app.use(cookieParser())
+app.use(cookieParser());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json())
 
