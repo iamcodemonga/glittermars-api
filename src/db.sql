@@ -22,7 +22,7 @@ CREATE TABLE public.products
     PRIMARY KEY (id)
 );
 
-CREATE TABLE public.users
+CREATE TABLE users
 (
     id serial NOT NULL,
     _id character varying(100) NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE public.users
     PRIMARY KEY (id)
 );
 
-CREATE TABLE public.orders
+CREATE TABLE orders
 (
     id serial NOT NULL,
     _id character varying(100) NOT NULL,
@@ -44,14 +44,14 @@ CREATE TABLE public.orders
     city character varying(50) NOT NULL,
     address text NOT NULL,
     postalcode character varying(10),
-    quantity bigint NOT NULL;
+    quantity bigint NOT NULL,
     price bigint NOT NULL,
     pending integer NOT NULL DEFAULT 0,
     created_at date,
     PRIMARY KEY (id)
 );
 
-CREATE TABLE public.reviews
+CREATE TABLE reviews
 (
     id serial NOT NULL,
     user_id character varying(100) NOT NULL,

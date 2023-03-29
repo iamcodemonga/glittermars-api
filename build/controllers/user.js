@@ -14,8 +14,14 @@ const connect_1 = require("../connect");
 const dotenv_1 = require("dotenv");
 (0, dotenv_1.config)();
 const profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    return res.json((_a = req.res) === null || _a === void 0 ? void 0 : _a.locals.user);
+    // return res.json(req.res?.locals.user)
+    try {
+        const { rows } = yield connect_1.pool.query('SELECT _id, fullname, email FROM users WHERE _id=$1', [req.params.id]);
+        return res.json(rows[0]);
+    }
+    catch (error) {
+        console.log(error);
+    }
 });
 exports.profile = profile;
 const placeOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -40,17 +46,16 @@ const placeOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.placeOrder = placeOrder;
 const getOrders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _b;
     let status;
     // get the user id
-    const user = (_b = req.res) === null || _b === void 0 ? void 0 : _b.locals.user;
+    const user = req.params.userid;
     if (!user) {
         status = { error: true, message: "User is not authorized!" };
         return res.json(status);
     }
     const client = yield connect_1.pool.connect();
     try {
-        const { rows } = yield connect_1.pool.query(`SELECT orders.pending, orders._id AS order_id, orders.quantity AS order_quantity, products._id, products.images, products.title, orders.price, products.quantity FROM orders LEFT JOIN products ON orders.product_id=products._id WHERE orders.buyer_id=$1 ORDER BY pending`, [user._id]);
+        const { rows } = yield connect_1.pool.query(`SELECT orders.pending, orders._id AS order_id, orders.quantity AS order_quantity, products._id, products.images, products.title, orders.price, products.quantity FROM orders LEFT JOIN products ON orders.product_id=products._id WHERE orders.buyer_id=$1 ORDER BY pending`, [user]);
         status = { error: false, message: "successful!", orders: rows };
         return res.json(status);
     }

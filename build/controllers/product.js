@@ -142,10 +142,10 @@ const similarProducts = (req, res) => __awaiter(void 0, void 0, void 0, function
 exports.similarProducts = similarProducts;
 // Get product by id
 const Product = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     // variable declaration
     let status;
-    const user = (_a = req.res) === null || _a === void 0 ? void 0 : _a.locals.user;
+    // const user = req.res?.locals.user;
+    const { user } = req.query;
     let customer = false;
     const { id } = req.params;
     const client = yield connect_1.pool.connect();
@@ -156,7 +156,7 @@ const Product = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return res.json(status);
         }
         if (user) {
-            const patron = yield connect_1.pool.query('SELECT id FROM orders WHERE product_id=$1 AND buyer_id=$2', [id, user._id]);
+            const patron = yield connect_1.pool.query('SELECT id FROM orders WHERE product_id=$1 AND buyer_id=$2', [id, user]);
             if (patron.rowCount > 0) {
                 customer = true;
             }

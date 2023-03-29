@@ -163,7 +163,8 @@ export const Product = async(req: Request, res: Response) => {
 
    // variable declaration
    let status: ProductAuth;
-   const user = req.res?.locals.user;
+   // const user = req.res?.locals.user;
+   const { user } = req.query;
    let customer: boolean = false;
 
    const { id }  = req.params;
@@ -177,7 +178,7 @@ export const Product = async(req: Request, res: Response) => {
          return res.json(status);
       }
       if (user){
-         const patron : QueryResult = await pool.query('SELECT id FROM orders WHERE product_id=$1 AND buyer_id=$2', [ id, user._id ]);
+         const patron : QueryResult = await pool.query('SELECT id FROM orders WHERE product_id=$1 AND buyer_id=$2', [ id, user ]);
          if (patron.rowCount > 0) {
             customer = true;
          }

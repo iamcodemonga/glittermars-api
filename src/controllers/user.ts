@@ -6,7 +6,15 @@ import { GetProduct, GetPackages, OrderAuth } from '../interfaces/product'
 config();
 
 export const profile = async(req: Request, res: Response) => {
-    return res.json(req.res?.locals.user)
+    // return res.json(req.res?.locals.user)
+    try {
+        const { rows }: QueryResult = await pool.query('SELECT _id, fullname, email FROM users WHERE _id=$1', [ req.params.id ]);
+        return res.json(rows[0])
+    } catch (error) {
+        console.log(error);
+        
+    }
+    
 }
 
 export const placeOrder = async(req: Request, res: Response) => {
@@ -32,7 +40,7 @@ export const getOrders = async(req: Request, res: Response) => {
 
     let status: OrderAuth;
     // get the user id
-    const user = req.res?.locals.user;
+    const user = req.params.userid;
     if (!user) {
         status = { error: true, message: "User is not authorized!"}
         return res.json(status)
@@ -40,7 +48,7 @@ export const getOrders = async(req: Request, res: Response) => {
     
     const client = await pool.connect();
     try {
-        const { rows }: QueryResult = await pool.query(`SELECT orders.pending, orders._id AS order_id, orders.quantity AS order_quantity, products._id, products.images, products.title, orders.price, products.quantity FROM orders LEFT JOIN products ON orders.product_id=products._id WHERE orders.buyer_id=$1 ORDER BY pending`, [ user._id]);
+        const { rows }: QueryResult = await pool.query(`SELECT orders.pending, orders._id AS order_id, orders.quantity AS order_quantity, products._id, products.images, products.title, orders.price, products.quantity FROM orders LEFT JOIN products ON orders.product_id=products._id WHERE orders.buyer_id=$1 ORDER BY pending`, [ user]);
         status = { error: false, message: "successful!", orders: rows}
         return res.json(status)
     } catch (error) {
