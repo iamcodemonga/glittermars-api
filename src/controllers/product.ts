@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { pool } from '../connect';
 import { GetProduct, ProductAuth, Review, ReviewStatus } from "../interfaces/product";
 import redis from "../cache";
+import { devNull } from "os";
 
 // create product
 export const addProduct = async (req: Request, res: Response) => {
@@ -166,6 +167,8 @@ export const Product = async(req: Request, res: Response) => {
    // const user = req.res?.locals.user;
    const { user } = req.query;
    let customer: boolean = false;
+   console.log(user);
+   
 
    const { id }  = req.params;
 
